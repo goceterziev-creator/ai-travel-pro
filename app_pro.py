@@ -140,7 +140,6 @@ if st.button("🔍 НАМИРИ Полети + Хотели GLOBAL", type="prima
         st.session_state.total_price = total_price
         st.session_state.nights = nights
 
-
 # 💳💸 PAYMENT ZONE
 st.markdown("━" * 80)
 st.subheader("💳 РЕЗЕРВИРАЙ | 📧 ОФЕРТА БИЛЯНА")
@@ -177,6 +176,7 @@ st.markdown("""
     👥 AYA Global Travel Team | Биляна +359 885 078 980 | Гоце +359 894 842 882
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
