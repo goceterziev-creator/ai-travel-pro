@@ -94,26 +94,35 @@ with col6:
 # 🚀 GLOBAL SEARCH
 if st.button("🔍 НАМИРИ Полети + Хотели GLOBAL", type="primary", use_container_width=True):
     with st.spinner(f"🎯 Amadeus търси {origin}→{dest}..."):
+        # ДИНАМИЧНИ ЦЕНИ според дестинация!
+        base_price = {"LON":80, "AMS":120, "PAR":150, "MAD":200, "JFK":800}[dest.split()[0]]
+        nights = max((checkout - checkin).days, 1)
+        hotel_price = {"LON":110, "AMS":140, "PAR":160, "MAD":130, "JFK":300}[dest.split()[0]]
         
-        # Real-like Amadeus Results
+        # Генерирай уникални полети
+        airlines = ["Ryanair", "Wizz Air", "easyJet", "Norwegian", "Vueling"]
+        flight_prices = [base_price + i*10 for i in range(len(airlines))]
+        
         flights_df = pd.DataFrame({
-            "Авиокомпания": ["Ryanair", "Wizz Air", "easyJet", "Norwegian"],
-            "Полёт": [f"FR{origin}{dest}1", f"W6{origin}{dest}", f"U2{origin}{dest}", f"DY{origin}{dest}"],
-            "Време": ["07:00→10:30", "06:15→09:45", "09:20→12:50", "14:00→17:30"],
-            "Цена": ["€79", "€97", "€112", "€89"]
+            "Авиокомпания": airlines,
+            "Полёт": [f"FR{origin[:3]}{dest[:3]}{i+1}" for i in range(len(airlines))],
+            "Време": [f"{7+i}:00→{10+i}:30" for i in range(len(airlines))],
+            "Цена": [f"€{p}" for p in flight_prices]
         })
         
         hotels_df = pd.DataFrame({
-            "Хотел": [f"Premier Inn {dest}", f"Hilton {dest} Airport", f"Ibis Styles {dest}", f"Marriott {dest} City"],
-            "⭐": ["4.3 (3.2K)", "4.6 (2.1K)", "4.1 (4.5K)", "4.7 (1.8K)"],
-            "€/нощ": ["€99", "€159", "€85", "€189"],
-            "🔗": ["premierinn.com", "hilton.com", "ibis.com", "marriott.com"]
+            "Хотел": [f"{hotel} {dest}", f"Hilton {dest}", f"Marriott {dest}", f"Ibis {dest}"],
+            "⭐": ["4.3", "4.6", "4.7", "4.1"],
+            "€/нощ": [hotel_price, hotel_price+30, hotel_price+60, hotel_price-20],
+            "🔗": ["hotel.com", "hilton.com", "marriott.com", "ibis.com"]
         })
         
-        nights = (checkout - checkin).days
-        total_price = adults * (sum(pd.to_numeric(flights_df['Цена'].str.replace('€',''))) + 
-                               nights * 120 + 200)
+        # ДИНАМИЧНА ТОТАЛНА ЦЕНА
+        cheapest_flight = min(flight_prices)
+        avg_hotel = sum(hotels_df["€/нощ"])
+        total_price = adults * (cheapest_flight + nights * avg_hotel * 0.8 + 250)
         
+        # Покажи резултатите...
         st.markdown("━" * 80)
         col_total1, col_total2 = st.columns([1,1])
         with col_total1:
@@ -126,6 +135,11 @@ if st.button("🔍 НАМИРИ Полети + Хотели GLOBAL", type="prima
         
         st.subheader("🏨 4-5⭐ ХОТЕЛИ")
         st.dataframe(hotels_df, use_container_width=True, hide_index=True)
+        
+        # Запази за email
+        st.session_state.total_price = total_price
+        st.session_state.nights = nights
+
 
 # 💳💸 PAYMENT ZONE
 st.markdown("━" * 80)
@@ -163,5 +177,6 @@ st.markdown("""
     👥 AYA Global Travel Team | Биляна +359 885 078 980 | Гоце +359 894 842 882
 </div>
 """, unsafe_allow_html=True)
+
 
 
