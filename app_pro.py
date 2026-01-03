@@ -142,12 +142,14 @@ with col_pay:
 with col_email:
     if st.button("📤 ИЗПРАТИ НА БИЛЯНА", type="secondary", use_container_width=True) and email:
         st.success(f"✅ ОФЕРТА ИЗПРАТЕНА!\n📧 {email}\n📱 {WHATSAPP_PHONE}")
+        approx_total = adults * (79 + nights * 99 + 200)
+
         st.code(f"""
-**Биляна Action Items {origin}→{dest}:**
+Биляна Action Items {origin}→{dest}:
 1. Ryanair FR{origin}{dest}1 €79 x{adults}
 2. Premier Inn {nights}н x €99 = €{nights*99}
-3. **ТОТАЛ €{int(total_price):,} → PROFIT €{int(total_price*0.2):,}**
-        """)
+3. ОБЩО ≈ €{approx_total} → PROFIT ≈ €{int(approx_total*0.2)}
+""")
 
 # 📊 Footer
 st.markdown("━" * 80)
@@ -157,3 +159,4 @@ st.markdown("""
     👥 AYA Global Travel Team | Биляна +359 885 078 980 | Гоце +359 894 842 882
 </div>
 """, unsafe_allow_html=True)
+
