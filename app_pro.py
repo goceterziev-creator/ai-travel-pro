@@ -20,7 +20,7 @@ h2, h3 {color: #f0f8ff !important;}
 </style>
 """, unsafe_allow_html=True)
 
-FROM_EMAIL = "goce_terziev@abv.bg"
+FROM_EMAIL = "aya.smart.store@gmail.com"
 TO_EMAIL = "aya.smart.store@gmail.com"
 WHATSAPP_PHONE = "359894842882"
 
@@ -153,3 +153,4 @@ st.markdown(f"""
     <a href="https://wa.me/{WHATSAPP_PHONE}" style="color:#25D366;">WhatsApp</a>
 </div>
 """, unsafe_allow_html=True)
+
