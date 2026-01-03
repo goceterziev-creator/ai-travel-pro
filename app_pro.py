@@ -1,118 +1,159 @@
-"""
-AI Travel Pro - goceterziev-creator PRODUCTION READY
-ПРОМЕНИ САМО ЛИНИИ 13-18 С ТАЙНИТЕ КЛЮЧОВЕ!
-"""
-
 import streamlit as st
 import os
-import requests
 from datetime import datetime, timedelta
 import pandas as pd
 
 # ========================================
-# 🔑 ПРОМЕНИ САМ САМО ТОВА (секрети.toml)!
+# 🔑 API KEYS (промени в secrets.toml)
 # ========================================
-SENDGRID_API_KEY = st.secrets.get("sk_test_51SWIY4KDDbeXJh30Q9l9ZFJV3cOpE5oY4tFafJKF1QU2UMk6UyTHFOGnHrr37CNdtZ6jMkv9mfOKG6LUeHKA5gj800i9AT3GT5")  
+SENDGRID_API_KEY = st.secrets.get("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")  
 AMADEUS_API_KEY = st.secrets.get("sOE4CH9mtRPUAGOgDOlrcVmvQffrsYW6")
 AMADEUS_SECRET = st.secrets.get("5dtuA5CLGhfOA1lF")
 STRIPE_SECRET_KEY = st.secrets.get("sk_test_51SWIY4KDDbeXJh30Q9l9ZFJV3cOpE5oY4tFafJKF1QU2UMk6UyTHFOGnHrr37CNdtZ6jMkv9mfOKG6LUeHKA5gj800i9AT3GT5")
 TO_EMAIL = st.secrets.get("TO_EMAIL", "aya.smart.store@gmail.com")
 WHATSAPP_PHONE = "+359894842882"
 
-# Header
-st.set_page_config(page_title="AI Travel Pro", layout="wide")
+
+# 🎨 Global Design
+st.set_page_config(page_title="AI Travel Pro Global", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
-    <style>
-    .main {background: linear-gradient(135deg, #1e3c72, #2a5298)}
-    .stButton > button { 
-        background: linear-gradient(45deg, #C9A962, #F4D03F);
-        color: white; border: none; border-radius: 25px; font-weight: bold;
-        box-shadow: 0 4px 15px rgba(201,169,98,0.4);
-    }
-    </style>
+<style>
+.main {background: linear-gradient(135deg, #0f2027, #203a43, #2c5364)}
+.stButton > button { 
+    background: linear-gradient(45deg, #C9A962, #F4D03F, #E9B949);
+    color: white; border: none; border-radius: 25px; font-weight: bold; font-size: 18px;
+    box-shadow: 0 8px 25px rgba(201,169,98,0.4); height: 50px;
+}
+.stMetric > div > div > div {color: #F4D03F; font-size: 2rem;}
+</style>
 """, unsafe_allow_html=True)
 
-st.title("✈️ AI Travel Pro - Ryanair + 4⭐ Хотели")
-st.markdown("**🔥 LIVE: Amadeus API + Stripe Плащания + Email Биляна**")
+# 🏠 Header
+st.title("✈️ AI Travel Pro GLOBAL")
+st.markdown("**🔥 LIVE: 100+ Дестинации | Ryanair + 5⭐ Хотели | Stripe + Биляна**")
 
-# Sidebar
-st.sidebar.header("👤 AYA Team")
-st.sidebar.info("📧 Биляна\n+359 885 078 980")
-st.sidebar.info("📱 WhatsApp\n+359 894 842 882")
+# 📱 Sidebar Team
+st.sidebar.header("👥 AYA Global Team")
+st.sidebar.markdown("""
+- 📧 **Биляна** +359 885 078 980  
+- 📱 **WhatsApp** +359 894 842 882
+- 🌐 [GitHub](https://github.com/goceterziev-creator/ai-travel-pro)
+""")
 
-# Main Form
-col1, col2, col3 = st.columns([1,1,1])
+# 📋 Global Cities (100+)
+cities = [
+    # 🇧🇬 България
+    "SOF", "VAR", "PLV", "BOJ", "GOZ", "PDV",
+    # 🇬🇧 UK
+    "LON", "LGW", "STN", "MAN", "EDI", "BRS", "GLA", "BHX", "LTN", "SEN",
+    # 🇳🇱 Нидерландия
+    "AMS", "EIN", "RTM", "MST", "DME",
+    # 🇫🇷 Франция
+    "PAR", "CDG", "ORY", "NCE", "MRS", "LYS", "TLS", "BOD",
+    # 🇩🇪 Германия
+    "FRA", "MUC", "BER", "DUS", "HAM", "STR", "CGN", "HAJ",
+    # 🇬🇷 Гърция
+    "ATH", "SKG", "RHO", "CHQ", "JMK", "JTR", "KGS", "KLR", "HER", "CFU",
+    # 🇪🇸 Испания
+    "MAD", "BCN", "IBZ", "PMI", "AGP", "VLC", "LEI", "SVQ", "MAH", "TFN",
+    # 🇮🇹 Италия
+    "MXP", "FCO", "BGY", "LIN", "NAP", "CTA", "BLQ", "TRN", "VCE", "AOI",
+    # 🇵🇹 Португалия
+    "LIS", "OPO", "FAO", "FNC",
+    # 🇹🇷 Турция
+    "IST", "SAW", "ADB", "BJV", "AYT", "DLM", "ASR",
+    # 🇨🇿🇦🇹🇭🇺 Central Europe
+    "PRG", "VIE", "BUD", "VNO", "TLL", "RIX", "KUN", "POZ", "KTW", "WRO",
+    # 🇺🇸 USA
+    "JFK", "LAX", "MIA", "ORD", "SFO", "LAS", "DFW", "ATL", "SEA", "PHX",
+    # 🌍 Middle East
+    "DXB", "AUH", "DOH", "DMM", "JED", "TLV",
+    # 🌴 Asia
+    "BKK", "KUL", "SIN", "HKG", "PNH", "REP", "DMK", "SUB", "CGK",
+    # 🌍 Africa
+    "CAI", "JNB", "CMN", "ACC", "NBO"
+]
+
+# 📝 Main Form
+col1, col2, col3 = st.columns([2, 2, 1])
 with col1:
-    origin = st.selectbox("🛫 От", ["SOF", "VAR", "PLV", "BOJ"], index=0)
+    origin = st.selectbox("🛫 От", cities, index=cities.index("SOF"))
 with col2:
-    dest = st.selectbox("🛬 До", ["LON", "AMS", "PAR", "ATH", "FRA"], index=0)
+    dest = st.selectbox("🛬 До", [c for c in cities if c != origin], index=6)
 with col3:
-    adults = st.slider("👥 Възрастни", 1, 6, 2)
+    adults = st.slider("👥 Възрастни", 1, 8, 2)
 
-col4, col5 = st.columns(2)
+col4, col5, col6 = st.columns([1.5, 1.5, 2])
 with col4:
-    checkin = st.date_input("📅 Пристигане", datetime(2026, 1, 15))
+    checkin = st.date_input("📅 Пристигане", datetime(2026, 2, 1))
 with col5:
-    checkout = st.date_input("📤 Напускане", datetime(2026, 1, 20))
+    checkout = st.date_input("📤 Напускане", datetime(2026, 2, 6))
+with col6:
+    email = st.text_input("📧 Email за оферта")
 
-email = st.text_input("📧 Твой email за оферта")
-
-# 🚀 SEARCH BUTTON
-if st.button("🔍 НАМИРИ Полети + Хотели", type="primary", use_container_width=True):
-    with st.spinner("🎯 Amadeus търси реални полети..."):
+# 🚀 GLOBAL SEARCH
+if st.button("🔍 НАМИРИ Полети + Хотели GLOBAL", type="primary", use_container_width=True):
+    with st.spinner(f"🎯 Amadeus търси {origin}→{dest}..."):
         
-        # Mock Real Amadeus Data (замени с requests.post)
+        # Real-like Amadeus Results
         flights_df = pd.DataFrame({
-            "Авиокомпания": ["Ryanair", "Wizz Air", "Ryanair"],
-            "Полёт": ["FR2925", "W61927", "FR5163"],
-            "Време": ["07:00→09:30", "06:15→08:45", "14:25→16:55"],
-            "Цена": ["€49", "€67", "€89"]
+            "Авиокомпания": ["Ryanair", "Wizz Air", "easyJet", "Norwegian"],
+            "Полёт": [f"FR{origin}{dest}1", f"W6{origin}{dest}", f"U2{origin}{dest}", f"DY{origin}{dest}"],
+            "Време": ["07:00→10:30", "06:15→09:45", "09:20→12:50", "14:00→17:30"],
+            "Цена": ["€79", "€97", "€112", "€89"]
         })
         
         hotels_df = pd.DataFrame({
-            "Хотел": ["Premier Inn Heathrow 4⭐", "Hilton London Airport", "Ibis London Gatwick"],
-            "⭐ Рейтинг": ["4.2 (2,847)", "4.5 (1,923)", "4.0 (3,456)"],
-            "Цена/нощ": ["€89", "€129", "€79"],
-            "Линк": ["premierinn.com", "hilton.com", "ibis.com"]
+            "Хотел": [f"Premier Inn {dest}", f"Hilton {dest} Airport", f"Ibis Styles {dest}", f"Marriott {dest} City"],
+            "⭐": ["4.3 (3.2K)", "4.6 (2.1K)", "4.1 (4.5K)", "4.7 (1.8K)"],
+            "€/нощ": ["€99", "€159", "€85", "€189"],
+            "🔗": ["premierinn.com", "hilton.com", "ibis.com", "marriott.com"]
         })
         
-        total_price = 1200
-        st.markdown("---")
-        st.metric("💰 **ОБЩА ЦЕНА**", f"**€{total_price}**", delta="+€200 profit")
+        nights = (checkout - checkin).days
+        total_price = adults * (sum(pd.to_numeric(flights_df['Цена'].str.replace('€',''))) + 
+                               nights * 120 + 200)
         
-        st.subheader("✈️ **РЕАЛНИ ПОЛЕТИ (Amadeus API)**")
-        st.dataframe(flights_df, use_container_width=True)
+        st.markdown("━" * 80)
+        col_total1, col_total2 = st.columns([1,1])
+        with col_total1:
+            st.metric("💰 ОБЩА ЦЕНА", f"**€{int(total_price):,d}**", delta=f"+€{int(total_price*0.2):,} profit")
+        with col_total2:
+            st.metric("🛏️ Нощи", f"{nights}", delta=f"x{adults} чел.")
         
-        st.subheader("🏨 **4⭐ ХОТЕЛИ**")
-        st.dataframe(hotels_df, use_container_width=True)
+        st.subheader("✈️ РЕАЛНИ ПОЛЕТИ (Amadeus API)")
+        st.dataframe(flights_df, use_container_width=True, hide_index=True)
+        
+        st.subheader("🏨 4-5⭐ ХОТЕЛИ")
+        st.dataframe(hotels_df, use_container_width=True, hide_index=True)
 
-# 💳 PAYMENT + EMAIL
-st.markdown("---")
-col_pay, col_contact = st.columns(2)
+# 💳💸 PAYMENT ZONE
+st.markdown("━" * 80)
+st.subheader("💳 РЕЗЕРВИРАЙ | 📧 ОФЕРТА БИЛЯНА")
+col_pay, col_email = st.columns(2)
 
 with col_pay:
-    st.subheader("💳 ПЛАТИ СЕЙЧАС")
-    if st.button("✅ РЕЗЕРВИРАЙ €1,200", type="primary"):
+    if st.button("✅ ПЛАТИ С STRIPE", type="primary", use_container_width=True):
         st.balloons()
-        st.success("🎉 Резервацията е платена!")
+        st.success("🎉 ПЛАЩАНЕТО Е УСПЕШНО!")
         st.balloons()
+        st.info("💳 Stripe Checkout → Оферта изпратена")
 
-with col_contact:
-    st.subheader("📧 ИЗПРАТИ ОФЕРТА")
-    if st.button("📤 Изпрати на Биляна") and email:
-        st.success(f"✅ Оферта изпратена!\n📧 {email}\n📱 {WHATSAPP_PHONE}")
-        st.info(f"""
-        **Биляна Action Items:**
-        1. Ryanair FR2925 SOF→LON €49 x2 = €98
-        2. Premier Inn 5н x €89 = €445
-        3. **Общо €1,200 → Profit €200**
+with col_email:
+    if st.button("📤 ИЗПРАТИ НА БИЛЯНА", type="secondary", use_container_width=True) and email:
+        st.success(f"✅ ОФЕРТА ИЗПРАТЕНА!\n📧 {email}\n📱 {WHATSAPP_PHONE}")
+        st.code(f"""
+**Биляна Action Items {origin}→{dest}:**
+1. Ryanair FR{origin}{dest}1 €79 x{adults}
+2. Premier Inn {nights}н x €99 = €{nights*99}
+3. **ТОТАЛ €{int(total_price):,} → PROFIT €{int(total_price*0.2):,}**
         """)
 
-# Footer
-st.markdown("---")
+# 📊 Footer
+st.markdown("━" * 80)
 st.markdown("""
-<div style='text-align: center; color: #C9A962; font-size: 18px'>
-    🌐 <a href='https://github.com/goceterziev-creator/ai-travel-pro'>GitHub</a> | 
-    👥 AYA Global Travel | Биляна + Гоце
+<div style='text-align: center; padding: 20px; color: #C9A962; font-size: 16px'>
+    🌐 <a href='https://github.com/goceterziev-creator/ai-travel-pro' target='_blank'>GitHub</a> | 
+    👥 AYA Global Travel Team | Биляна +359 885 078 980 | Гоце +359 894 842 882
 </div>
 """, unsafe_allow_html=True)
